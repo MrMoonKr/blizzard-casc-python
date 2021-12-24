@@ -1,0 +1,17 @@
+###
+# REST Client Extension 설치하세요
+###
+
+###
+# 테스트용
+###
+GET http://www.google.co.kr
+
+
+###
+#
+###
+GET http://kr.patch.battle.net:1119/wow/versions
+
+
+
