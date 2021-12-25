@@ -11,6 +11,25 @@ GET http://www.google.co.kr
 ###
 #
 ###
+
+###
+GET http://kr.patch.battle.net:1119/wow/cdns
+
+###
+GET http://kr.patch.battle.net:1119/w3/cdns
+
+###
+GET http://kr.patch.battle.net:1119/d3/cdns
+
+### Build Configuration
+GET http://level3.blizzard.com/tpr/wow/config/d5/46/d546a9eb7ada55776c68f1877ccd1e79
+
+### CDN Configuration
+GET http://level3.blizzard.com/tpr/wow/config/45/f7/45f721587ad00985a3ecc8e917d8392f
+
+###
+#
+###
 GET http://kr.patch.battle.net:1119/wow/versions
 
 

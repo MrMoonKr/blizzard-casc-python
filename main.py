@@ -17,7 +17,7 @@ debug = logger.debug
 
 def split_hash( hash ):
 	"""
-	해시코드를 [2:2:전부]로 쪼개서 반환
+	해시코드를 [2:2:all]로 쪼개서 반환
 	"""
 	return hash[0:2], hash[2:4], hash
 
@@ -104,6 +104,9 @@ class FlatINI( OrderedDict ):
 
 
 class NGDPCache:
+	"""
+	로컬 파일 저장소
+	"""
 	HOME 			= os.path.expanduser("~") # "C:\\Users\\XXXXXX"
 	XDG_CACHE_HOME 	= os.environ.get( "XDG_CACHE_HOME", os.path.join( HOME, ".cache" ) ) # "C:\\Users\\XXXXXX\\.cache"
 
@@ -112,24 +115,35 @@ class NGDPCache:
 		self.basedir 	= os.path.join( basedir, domain )
 
 	def contains( self, key, name ):
+		"""
+		base/key/name 경로에 로컬파일 존재 여부
+		"""
 		path = os.path.join( self.basedir, key, name )
 		return os.path.exists( path )
 
 	def get( self, key, name ):
+		"""
+		base/key/name 경로로 로컬파일 로딩
+		:param key config, version 등...
+		:param name HEX16 해시
+		"""
 		path = os.path.join( self.basedir, key, name )
-		with open(path, "rb") as f:
+		with open( path, "rb" ) as f:
 			return f.read()
 
-	def write(self, key, name, data, hash):
-		debug("write_to_cache(key=%r, name=%r, data=%r, hash=%r", key, name, len(data), hash)
-		dirname = os.path.join(self.basedir, key)
-		if not os.path.exists(dirname):
+	def write( self, key, name, data, hash ):
+		"""
+		base/key/name 경로로 로컬파일로 저장
+		"""
+		debug( "write_to_cache( key=%r, name=%r, data=%r, hash=%r", key, name, len( data ), hash )
+		dirname = os.path.join( self.basedir, key )
+		if not os.path.exists( dirname ):
 			# debug("mkdir %r", dirname)
-			os.makedirs(dirname)
-		fname = os.path.join(dirname, name)
-		with open(fname, "wb") as f:
-			f.write(data)
-		log("Written %i bytes to %r" % (len(data), fname))
+			os.makedirs( dirname )
+		fname = os.path.join( dirname, name )
+		with open( fname, "wb" ) as f:
+			f.write( data )
+		log( "Written %i bytes to %r" % ( len( data ), fname ) )
 
 
 class NGDPConnection:
@@ -137,7 +151,7 @@ class NGDPConnection:
 	Next Generation Distribution Platform = Trustted Application Content Transfer ( Web ) + CASC ( Local )
 	https://wowdev.wiki/NGDP
 	"""
-	def __init__( self, url: str, region: str ="eu" ):
+	def __init__( self, url: str, region: str ="kr" ):
 		self.host 			= url.format( region = region )
 		self.region 		= region
 		self.cache 			= NGDPCache("info.hearthsim.keg")
@@ -176,25 +190,38 @@ class NGDPConnection:
 				yield row
 
 	def _parse_csv( self, rows ):
-		rows = list(rows)
-		columns = rows[0]
-		column_names = [c.split("!")[0] for c in columns]
-		ret = []
+		"""
+		설정파일 파싱
+		:param rows csv.reader()로 반환된 iterator
+		"""
+		rows 			= list( rows )
+		columns 		= rows[0]
+		column_names 	= [ c.split("!")[0] for c in columns ] # 칼럼이름!칼럼타입:숫자 | 칼럼이름!칼럼타입:숫자 | ...
+
+		ret 			= []
 		for row in rows[1:]:
-			ret.append({k: v for k, v in zip(column_names, row)})
+			ret.append( { k: v for k, v in zip( column_names, row ) } )
+
 		return ret
 
 	def _get_cached_csv( self, path: str ):
+		"""
+		패치서버로 부터 특정경로 설정파일 다운로드 및 캐싱된 파일 데이터 리턴
+		"""
 		if path not in self._obj_cache:
-			r = self.get(path)
-			hash = md5(r.content).hexdigest()
-			self.cache.write("cdns", hash, r.content, hash)
-			reader = csv.reader(StringIO(r.text), delimiter="|")
-			self._obj_cache[path] = self._parse_csv(reader)
+			res 	= self.get( path )
+			hash 	= md5( res.content ).hexdigest()
+			self.cache.write( "cdns", hash, res.content, hash )
+
+			reader 	= csv.reader( StringIO( res.text ), delimiter="|" )  # 칼럼값 | 칼럼값 | ...
+			self._obj_cache[path] = self._parse_csv( reader )
 
 		return self._obj_cache[path]
 
-	def get_or_cache( self, key, hash, name=None):
+	def get_or_cache( self, key, hash, name=None ):
+		"""
+		웹에서 다운로드 및 로컬캐시 로딩
+		"""
 		if name is None:
 			name = hash
 
@@ -207,27 +234,36 @@ class NGDPConnection:
 		return data
 
 	def get_config( self, hash ):
-		data = self.get_or_cache("config", hash)
-		config = FlatINI()
-		config.readfp(StringIO(data.decode("utf-8")))
+		"""
+		/config/해시 파일 로딩
+		"""
+		data 	= self.get_or_cache( "config", hash )
+		config 	= FlatINI()
+		config.readfp( StringIO( data.decode( "utf-8" ) ) )
 		return config
 
-	def get_data(self, hash):
-		index = self.get_or_cache("data", hash, name=hash + ".index")
-		data = self.get_or_cache("data", hash)
+	def get_data( self, hash ):
+		"""
+		archive 다운로드
+		"""
+		index 	= self.get_or_cache( "data", hash, name = hash + ".index" )
+		data 	= self.get_or_cache( "data", hash )
 		return index, data
 
-	def get_patch(self, hash):
-		data = self.get_or_cache("patch", hash)
+	def get_patch( self, hash ):
+		data 	= self.get_or_cache( "patch", hash )
 		return data
 
 	def cdn_get( self, path: str ):
+		"""
+		cdn/path 경로로 웹 다운로드
+		"""
 		url = self.cdn + path
-		debug( "GET %s", url )
-		r = requests.get(url)
-		if r.status_code != 200:
-			raise ServerError("Got HTTP %r when querying %r" % (r.status_code, url))
-		return r.content
+		debug( "[정보] GET %s", url )
+		res = requests.get( url )
+		if res.status_code != 200:
+			raise ServerError( "Got HTTP %r when querying %r" % ( res.status_code, url ) )
+		return res.content
 
 	def get( self, path ):
 		"""
@@ -252,12 +288,12 @@ def main():
 		print( "Found build %s (%r)" % ( build_name, build ) )
 
 		for archive in v["CDNConfig"]["archives"].split(" "):
-			conn.get_data(archive)
+			conn.get_data( archive )
 
 		patch_ekey = v["BuildConfig"]["patch"]
-		conn.get_patch(patch_ekey)
+		conn.get_patch( patch_ekey )
 
-		patch_config = conn.get_config(v["BuildConfig"]["patch-config"])
+		patch_config = conn.get_config( v["BuildConfig"]["patch-config"] )
 		assert patch_config["patch"] == patch_ekey
 
 
