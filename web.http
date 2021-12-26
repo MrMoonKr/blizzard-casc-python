@@ -8,8 +8,36 @@
 GET http://www.google.co.kr
 
 
+### Build Configuration
+GET http://level3.blizzard.com/tpr/wow/config/d5/46/d546a9eb7ada55776c68f1877ccd1e79
+
+### CDN Configuration
+GET http://level3.blizzard.com/tpr/wow/config/45/f7/45f721587ad00985a3ecc8e917d8392f
+
+### Product Configuration
+GET http://level3.blizzard.com/tpr/configs/data/31/8f/318f0300bf837efce38b1a9e09db1c2e
+
+### Patch Configuration
+GET http://level3.blizzard.com/tpr/wow/patch/e6/69/e669b23ace65f1908df0a45e7a17fcfa
+
 ###
-#
+# [Versions]
+# Region|BuildConfig|CDNConfig|KeyRing|BuildId|VersionName|ProductConfig
+###
+
+###
+GET http://kr.patch.battle.net:1119/wow/versions
+
+###
+GET http://kr.patch.battle.net:1119/w3/versions
+
+###
+GET http://kr.patch.battle.net:1119/d3/versions
+
+
+###
+# [CDNS]
+# Name|Path|Hosts|Servers|ConfigPath
 ###
 
 ###
@@ -20,17 +48,6 @@ GET http://kr.patch.battle.net:1119/w3/cdns
 
 ###
 GET http://kr.patch.battle.net:1119/d3/cdns
-
-### Build Configuration
-GET http://level3.blizzard.com/tpr/wow/config/d5/46/d546a9eb7ada55776c68f1877ccd1e79
-
-### CDN Configuration
-GET http://level3.blizzard.com/tpr/wow/config/45/f7/45f721587ad00985a3ecc8e917d8392f
-
-###
-#
-###
-GET http://kr.patch.battle.net:1119/wow/versions
 
 
 
