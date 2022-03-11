@@ -17,7 +17,7 @@ debug = logger.debug
 
 def split_hash( hash ):
 	"""
-	해시코드를 [2:2:all]로 쪼개서 반환
+	해시코드를 [2:2:hash]로 쪼개서 반환
 	"""
 	return hash[0:2], hash[2:4], hash
 
@@ -148,7 +148,9 @@ class NGDPCache:
 
 class NGDPConnection:
 	"""
-	Next Generation Distribution Platform = Trustted Application Content Transfer ( Web ) + CASC ( Local )
+	Next Generation Distribution Platform =
+        Trustted Application Content Transfer ( TACT, CDN Web ) +
+        Content Addressable Storage Container ( CASC , FILEs Local )
 	https://wowdev.wiki/NGDP
 	"""
 	def __init__( self, url: str, region: str ="kr" ):
